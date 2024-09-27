@@ -48,7 +48,7 @@ with open("chatsnapshot.txt", "r", encoding="utf-8") as f:
 
 parsed_messages = parse_discord_messages(discord_text)
 
-botname = "Claude Opus"
+botname = "Claude 3.5 Sonnet"
 def send(messages):
     msgs = [{
         "role": "user",
@@ -65,7 +65,7 @@ def send(messages):
             cur_msg = ""
             msgs.append({
                 "role": "user",
-                "content": "Claude Opus:"
+                "content": "<chat_logs>"
             })
             msgs.append({
                 "role": "assistant",
@@ -73,19 +73,19 @@ def send(messages):
             })
             msgs.append({
                 "role": "user",
-                "content": "Chat log follows."
+                "content": "</chat_logs>"
             })
         else:
             cur_msg += f"<msg username='{message['username']}'>\n\t{message['content']}\n</xml>\n"
     if cur_msg != "":
         msgs.append({
             "role": "assistant",
-            "content": "<chat_log>\n" + cur_msg.strip() + "\n</chat_log>"
+            "content": cur_msg.strip() + "\n"
         })
 
     msgs.append({
         "role": "user",
-        "content": "Its your turn."
+        "content": f"<msg username='{botname}'>"
     })
 
     print(json.dumps(msgs, indent=4))
@@ -93,7 +93,7 @@ def send(messages):
     key = os.getenv("ANTHROPIC_API_KEY")
     result = anthropic.Anthropic(
         api_key=key).messages.create(
-        model="claude-3-opus-20240229",
+        model="claude-3-5-sonnet-20240620",
         max_tokens=1024,
         messages=msgs,
         system="I am " + botname
@@ -142,29 +142,29 @@ def create_html(messages):
 def printmsg(msg):
     print(msg['username'], ": ", msg['content'])
 
-# prompt = []
-# for x in range(0, len(parsed_messages)):
-#     message = parsed_messages[x]
-#     if x > 20 and x % 4 == 0:
-#         msg = send(prompt)
-#         msg = {
-#             "username": botname,
-#             "content": msg
-#         }
-#         print("=========")
-#         print(botname, msg['content'])
-#         print("---------")
-#         prompt.append(msg)
-#     prompt.append(message)
-#     printmsg(message)
+prompt = []
+for x in range(0, len(parsed_messages)):
+    message = parsed_messages[x]
+    if x > 20 and x % 4 == 0:
+        msg = send(prompt)
+        msg = {
+            "username": botname,
+            "content": msg
+        }
+        print("=========")
+        print(botname, msg['content'])
+        print("---------")
+        prompt.append(msg)
+    prompt.append(message)
+    printmsg(message)
 
-# save prompt to json file
-# with open("prompt.json", "w", encoding="utf-8") as f:
-#     json.dump(prompt, f, indent=4)
+#save prompt to json file
+with open("prompt.json", "w", encoding="utf-8") as f:
+    json.dump(prompt, f, indent=4)
 
 
-with open("prompt.json", "r", encoding="utf-8") as f:
-    prompt = json.load(f)
+# with open("prompt.json", "r", encoding="utf-8") as f:
+#     prompt = json.load(f)
 
 # Generate HTML content
 html_content = create_html(prompt)
