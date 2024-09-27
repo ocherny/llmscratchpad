@@ -170,5 +170,5 @@ with open("prompt.json", "w", encoding="utf-8") as f:
 html_content = create_html(prompt)
 
 # Save HTML file
-with open("chat_log.html", "w", encoding="utf-8") as f:
+with open("chat_log_sonnet.html", "w", encoding="utf-8") as f:
     f.write(html_content)
