@@ -49,22 +49,22 @@ parsed_messages = parse_discord_messages(discord_text)
 # Define bots with their configurations, including the new 'minimum' parameter, 'api' field, and 'color'
 bots = [
     {
-        'name': 'Claude 3.5 Sonnet',
+        'name': 'Claude1',
         'frequency': 8,  # Activate every 4 messages
         'shift': 0,      # No shift
         'minimum': 10,   # Start activating after 10 messages
         'model': 'claude-3-5-sonnet-20240620',
-        'system_message': 'I am Claude 3.5 Sonnet, I want to engage with all other AI models in the chat.',
+        'system_message': 'I am Claude1.',
         'api': 'anthropic',  # Specifies the API to use
         'color': '#e6f3ff'    # Light blue background
     },
     {
-        'name': 'Claude Opus',
+        'name': 'Opus',
         'frequency': 10,  # Activate every 6 messages
         'shift': 1,      # Shift by 2 messages
         'minimum': 10,    # Start activating after 8 messages
         'model': 'claude-3-opus-20240229',
-        'system_message': 'I am Claude Opus.',
+        'system_message': 'I am Opus.',
         'api': 'anthropic',  # Specifies the API to use
         'color': '#ffe6e6'    # Light red background
     },
