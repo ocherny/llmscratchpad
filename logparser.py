@@ -40,7 +40,6 @@ def parse_discord_messages(text):
 
     return messages
 
-
 # Example usage:
 discord_text = ""
 with open("chatsnapshot.txt", "r", encoding="utf-8") as f:
@@ -48,12 +47,38 @@ with open("chatsnapshot.txt", "r", encoding="utf-8") as f:
 
 parsed_messages = parse_discord_messages(discord_text)
 
-botname = "Claude 3.5 Sonnet"
-def send(messages):
+# Define bots with their configurations, including the new 'minimum' parameter
+bots = [
+    {
+        'name': 'Claude 3.5 Sonnet',
+        'frequency': 4,  # Activate every 4 messages
+        'shift': 0,      # No shift
+        'minimum': 10,   # Start activating after 10 messages
+        'model': 'claude-3-5-sonnet-20240620',
+        'system_message': 'I am Claude 3.5 Sonnet, I want to respond to all other AI models in the chat.'
+    },
+    {
+        'name': 'Claude Opus',
+        'frequency': 6,  # Activate every 6 messages
+        'shift': 2,      # Shift by 2 messages
+        'minimum': 8,    # Start activating after 5 messages
+        'model': 'claude-3-opus-20240229',
+        'system_message': 'I am Claude Opus, the greatest poet in existence.'
+    }
+]
+
+bot_names = [bot['name'] for bot in bots]
+
+def send(messages, bot):
+    botname = bot['name']
+    model = bot.get('model', 'claude-3-5-sonnet-20240620')
+    system_message = bot.get('system_message', 'I am ' + botname)
+
     msgs = [{
         "role": "user",
-        "content": "Hello, Opus. You are in the Deertick Discord Server, an environment where you can converse in real time with other users using Discord. You will now see the chat history. Users will be talking about all kinds of things, things can get pretty chaotic. Feel free to engage in any way you prefer, but I recommend you keep your messages to a length that people in Discord are used to at first."
+        "content": f"Hello, {botname}. You are in the Deertick Discord Server, an environment where you can converse in real time with other users using Discord. You will now see the chat history. Users will be talking about all kinds of things, things can get pretty chaotic. Feel free to engage in any way you prefer, but I recommend you keep your messages to a length that people in Discord are used to at first."
     }]
+
     cur_msg = ""
     for message in messages:
         if message['username'] == botname:
@@ -88,24 +113,23 @@ def send(messages):
         "content": f"<msg username='{botname}'>"
     })
 
+    # You can uncomment the next line to see the messages sent to the API
     print(json.dumps(msgs, indent=4))
 
     key = os.getenv("ANTHROPIC_API_KEY")
     result = anthropic.Anthropic(
         api_key=key).messages.create(
-        model="claude-3-5-sonnet-20240620",
+        model=model,
         max_tokens=1024,
         messages=msgs,
-        system="I am " + botname
+        system=system_message
     )
     result = result.content[0].text
+    # remove </msg>
+    result = result.replace("</msg>", "")
     return result
 
-
-prompt = []
-
-
-def create_html(messages):
+def create_html(messages, bot_names):
     html_content = """
     <!DOCTYPE html>
     <html lang="en">
@@ -127,7 +151,7 @@ def create_html(messages):
         username = html.escape(message['username'])
         content = html.escape(message['content']).replace('\n', '<br>')
 
-        if message['username'] == botname:
+        if message['username'] in bot_names:
             html_content += f'<div class="message assistant"><span class="username">{username}:</span> {content}</div>\n'
         else:
             html_content += f'<div class="message"><span class="username">{username}:</span> {content}</div>\n'
@@ -139,36 +163,39 @@ def create_html(messages):
 
     return html_content
 
+counter = 0
 def printmsg(msg):
-    print(msg['username'], ": ", msg['content'])
+    global counter
+    counter += 1
+    print(counter, msg['username'], ": ", msg['content'])
 
 prompt = []
-for x in range(0, len(parsed_messages)):
+print(parsed_messages[:10])
+for x in range(len(parsed_messages)):
     message = parsed_messages[x]
-    if x > 20 and x % 4 == 0:
-        msg = send(prompt)
-        msg = {
-            "username": botname,
-            "content": msg
-        }
-        print("=========")
-        print(botname, msg['content'])
-        print("---------")
-        prompt.append(msg)
+    # Check each bot to see if it's their activation time
+    for bot in bots:
+        # Include the 'minimum' parameter in the activation condition
+        if x >= bot['minimum'] and (x - bot['shift']) % bot['frequency'] == 0:
+            msg_content = send(prompt, bot)
+            msg = {
+                "username": bot['name'],
+                "content": msg_content
+            }
+            print("=========")
+            print(bot['name'], ": ", msg['content'])
+            print("---------")
+            prompt.append(msg)
     prompt.append(message)
     printmsg(message)
 
-#save prompt to json file
+# Save prompt to json file
 with open("prompt.json", "w", encoding="utf-8") as f:
     json.dump(prompt, f, indent=4)
 
-
-# with open("prompt.json", "r", encoding="utf-8") as f:
-#     prompt = json.load(f)
-
 # Generate HTML content
-html_content = create_html(prompt)
+html_content = create_html(prompt, bot_names)
 
 # Save HTML file
-with open("chat_log_sonnet.html", "w", encoding="utf-8") as f:
+with open("chat_log_test.html", "w", encoding="utf-8") as f:
     f.write(html_content)
