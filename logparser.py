@@ -137,7 +137,7 @@ def send(messages, bot):
     })
 
     # You can uncomment the next line to see the messages sent to the API
-    # print(json.dumps(msgs, indent=4))
+    print(json.dumps(msgs, indent=4))
 
     if api == 'anthropic':
         key = os.getenv("ANTHROPIC_API_KEY")
