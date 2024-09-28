@@ -93,28 +93,38 @@ def send(messages, bot):
     }]
 
     cur_msg = ""
+
+    # for message in messages:
+    #     if message['username'] == botname:
+    #         if cur_msg != "":
+    #             msgs.append({
+    #                 "role": "assistant",
+    #                 "content": "<chat_log>\n" + cur_msg.strip() + "\n</chat_log>"
+    #             })
+    #         cur_msg = ""
+    #         # msgs.append({
+    #         #     "role": "user",
+    #         #     "content": "<chat_logs>"
+    #         # })
+    #         # msgs.append({
+    #         #     "role": "assistant",
+    #         #     "content": message['content'].strip()
+    #         # })
+    #         # msgs.append({
+    #         #     "role": "user",
+    #         #     "content": "</chat_logs>"
+    #         # })
+    #         msgs.append({
+    #             "role": "user",
+    #             "content": "<chat_logs>\nmessage['content'].strip()\n</chat_logs>"
+    #         })
+    #
+    #     else:
+    #         cur_msg += f"<msg username='{message['username']}'>\n\t{message['content']}\n</msg>\n"
+
     for message in messages:
-        if message['username'] == botname:
-            if cur_msg != "":
-                msgs.append({
-                    "role": "assistant",
-                    "content": "<chat_log>\n" + cur_msg.strip() + "\n</chat_log>"
-                })
-            cur_msg = ""
-            msgs.append({
-                "role": "user",
-                "content": "<chat_logs>"
-            })
-            msgs.append({
-                "role": "assistant",
-                "content": message['content'].strip()
-            })
-            msgs.append({
-                "role": "user",
-                "content": "</chat_logs>"
-            })
-        else:
-            cur_msg += f"<msg username='{message['username']}'>\n\t{message['content']}\n</msg>\n"
+        cur_msg += f"<msg username='{message['username']}'>\n\t{message['content']}\n</msg>\n"
+
     if cur_msg != "":
         msgs.append({
             "role": "assistant",
